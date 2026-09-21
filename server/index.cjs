@@ -8,7 +8,7 @@ const fs = require("fs");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
-const PORT = process.env.APP_PORT || 8000;
+const PORT = process.env.PORT || 8000;
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "127.0.0.1",
   port: Number(process.env.DB_PORT || 3306),
