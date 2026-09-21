@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -161,7 +162,7 @@ button{
 }
 
 @keyframes bookingHighlight{
-  0%, 65%{background:#fff1c7}
+  0%,65%{background:#fff1c7}
   100%{background:white}
 }
 
@@ -203,6 +204,7 @@ button{
 }
 
 /* أيام الدوام */
+
 .day{
   display:flex;
   align-items:center;
@@ -243,7 +245,13 @@ button{
   padding:8px 10px;
   border:1px solid #ddd;
   border-radius:8px;
-  background:#fff
+  background:#fff;
+  box-sizing:border-box
+}
+
+.time-input:disabled{
+  background:#f1f1f1;
+  cursor:not-allowed
 }
 
 .day-actions{
@@ -265,11 +273,20 @@ button{
   font-size:14px
 }
 
+.closed-period-controls{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:10px
+}
+
 .closed-period-row{
   display:flex;
   align-items:center;
   gap:8px;
-  margin:7px 0
+  margin:7px 0;
+  flex-wrap:wrap
 }
 
 .closed-period-row button,
@@ -347,6 +364,7 @@ button{
   }
 }
 </style>
+
 </head>
 
 <body>
@@ -374,6 +392,8 @@ let pollingTimer=null;
 let pollingInFlight=false;
 let highlightTimer=null;
 
+const APPOINTMENT_DURATION_MINUTES=60;
+
 const days=[
   "الأحد",
   "الإثنين",
@@ -383,6 +403,11 @@ const days=[
   "الجمعة",
   "السبت"
 ];
+
+
+/* =========================
+   API
+========================= */
 
 async function api(url,opt={}){
 
@@ -405,6 +430,50 @@ async function api(url,opt={}){
 
   return d;
 }
+
+
+/* =========================
+   أدوات الوقت
+========================= */
+
+function timeMinutes(time){
+
+  const value=String(time || "").slice(0,5);
+
+  const parts=value.split(":");
+
+  if(parts.length!==2){
+    return NaN;
+  }
+
+  const hours=Number(parts[0]);
+  const minutes=Number(parts[1]);
+
+  if(
+    !Number.isFinite(hours) ||
+    !Number.isFinite(minutes) ||
+    hours<0 ||
+    hours>23 ||
+    minutes<0 ||
+    minutes>59
+  ){
+    return NaN;
+  }
+
+  return hours*60+minutes;
+
+}
+
+function normalizeTime(time){
+
+  return String(time || "").slice(0,5);
+
+}
+
+
+/* =========================
+   Polling
+========================= */
 
 function stopPolling(){
 
@@ -434,80 +503,146 @@ function bookingSummary(booking){
 
 }
 
+function clinicNow(){
+
+  const parts=new Intl.DateTimeFormat("en-CA",{
+    timeZone:"Asia/Damascus",
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit",
+    hourCycle:"h23"
+  }).formatToParts(new Date());
+
+  const values=Object.fromEntries(
+    parts
+      .filter(part=>part.type!=="literal")
+      .map(part=>[part.type,part.value])
+  );
+
+  return {
+    date:`${values.year}-${values.month}-${values.day}`,
+    minutes:Number(values.hour)*60+Number(values.minute)
+  };
+
+}
+
+function isActiveBooking(booking,now=clinicNow()){
+
+  const date=String(booking.booking_date).slice(0,10);
+  const time=String(booking.booking_time).slice(0,5);
+
+  const [hours,minutes]=time.split(":").map(Number);
+
+  const endMinutes=
+    hours*60+
+    minutes+
+    APPOINTMENT_DURATION_MINUTES;
+
+  if(!date || !Number.isFinite(endMinutes)){
+    return true;
+  }
+
+  if(date!==now.date){
+    return date>now.date;
+  }
+
+  return endMinutes>now.minutes;
+
+}
+
 function updateBookings(bookings){
 
-  const nextBookings=Array.isArray(bookings) ? bookings : [];
+  const now=clinicNow();
+
+  const nextBookings=
+    (Array.isArray(bookings)?bookings:[])
+      .filter(booking=>isActiveBooking(booking,now));
 
   if(!bookingsInitialized){
-    nextBookings.forEach(booking=>knownBookingIds.add(booking.id));
+
+    nextBookings.forEach(
+      booking=>knownBookingIds.add(booking.id)
+    );
+
     bookingsInitialized=true;
+
   }else{
+
     nextBookings.forEach(booking=>{
+
       if(!knownBookingIds.has(booking.id)){
+
         state.notifications.unshift(booking);
         state.unreadNotifications+=1;
         knownBookingIds.add(booking.id);
+
       }
+
     });
+
   }
 
   state.bookings=nextBookings.sort((a,b)=>{
-    const dateCompare=String(b.booking_date).slice(0,10).localeCompare(
+
+    const dateCompare=
       String(a.booking_date).slice(0,10)
-    );
+      .localeCompare(
+        String(b.booking_date).slice(0,10)
+      );
 
     if(dateCompare!==0){
       return dateCompare;
     }
 
-    return String(b.booking_time).slice(0,5).localeCompare(
-      String(a.booking_time).slice(0,5)
-    );
+    return String(a.booking_time).slice(0,5)
+      .localeCompare(
+        String(b.booking_time).slice(0,5)
+      );
+
   });
 
 }
 
 async function refreshBookings(){
 
-  updateBookings(await api("/admin/bookings"));
+  updateBookings(
+    await api("/admin/bookings")
+  );
 
 }
-
 async function pollBookings(){
 
   if(!state.logged || pollingInFlight){
     return;
   }
 
+  const activeElement = document.activeElement;
+
+  const editingTime =
+    activeElement &&
+    activeElement.matches('input[type="time"]');
+
   pollingInFlight=true;
 
   try{
+
     await refreshBookings();
-    render();
+
+    if(!editingTime){
+      render();
+    }
+
   }catch(e){
-    // A failed polling cycle should not stop future cycles.
+
+    // استمرار التحديث الدوري حتى لو فشلت دورة واحدة.
+
   }finally{
+
     pollingInFlight=false;
+
   }
-
-}
-
-function startPolling(){
-
-  stopPolling();
-  pollingTimer=setInterval(pollBookings,3000);
-
-}
-
-function toggleNotifications(){
-
-  state.notificationsOpen=!state.notificationsOpen;
-
-  if(state.notificationsOpen){
-    state.unreadNotifications=0;
-  }
-
-  render();
 
 }
 
@@ -516,18 +651,31 @@ function focusBooking(id){
   state.notificationsOpen=false;
   state.notifications=[];
   state.highlightedBookingId=id;
+
   render();
 
-  document.getElementById("bookings-section")?.scrollIntoView({behavior:"smooth",block:"start"});
+  document
+    .getElementById("bookings-section")
+    ?.scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
 
   clearTimeout(highlightTimer);
+
   highlightTimer=setTimeout(()=>{
+
     state.highlightedBookingId=null;
     render();
+
   },1800);
 
 }
 
+
+/* =========================
+   Render
+========================= */
 
 function render(){
 
@@ -601,26 +749,55 @@ function render(){
               aria-label="الإشعارات"
             >
               🔔
-              ${state.unreadNotifications
-                ? `<span class="notification-count">${state.unreadNotifications}</span>`
-                : ""}
+
+              ${
+                state.unreadNotifications
+                ? `<span class="notification-count">
+                    ${state.unreadNotifications}
+                  </span>`
+                : ""
+              }
+
             </button>
 
-            ${state.notificationsOpen
-              ? `<div class="notification-menu">
-                  ${state.notifications.length
+            ${
+              state.notificationsOpen
+              ? `
+                <div class="notification-menu">
+
+                  ${
+                    state.notifications.length
+
                     ? state.notifications.map(b=>`
+
                         <button
                           class="notification-item"
                           onclick="focusBooking(${b.id})"
                         >
-                          <strong>🔔 حجز جديد #${b.id}</strong>
-                          <span>${bookingSummary(b)}</span>
+
+                          <strong>
+                            🔔 حجز جديد #${b.id}
+                          </strong>
+
+                          <span>
+                            ${bookingSummary(b)}
+                          </span>
+
                         </button>
+
                       `).join("")
-                    : `<div class="small">لا توجد إشعارات جديدة</div>`}
-                </div>`
-              : ""}
+
+                    : `
+                      <div class="small">
+                        لا توجد إشعارات جديدة
+                      </div>
+                    `
+                  }
+
+                </div>
+              `
+              : ""
+            }
 
           </div>
 
@@ -661,7 +838,9 @@ function render(){
       </div>
 
 
-      <!-- أيام الدوام -->
+      <!-- =====================
+           أيام الدوام
+      ====================== -->
 
       <div class="card">
 
@@ -669,6 +848,7 @@ function render(){
 
         <p class="small">
           يمكنك تعديل وقت بداية ونهاية الدوام أو إغلاق اليوم بالكامل.
+          ويمكنك أيضًا إغلاق فترة محددة داخل ساعات الدوام.
         </p>
 
         ${
@@ -685,13 +865,13 @@ function render(){
                 <br>
 
                 <span class="${
-                  Number(s.day_of_week) === 5 || !s.is_open
+                  Number(s.day_of_week)===5 || !s.is_open
                   ? "status-closed"
                   : "status-open"
                 }">
 
                   ${
-                    Number(s.day_of_week) === 5
+                    Number(s.day_of_week)===5
                     ? "● عطلة أسبوعية"
                     : s.is_open
                     ? "● اليوم مفتوح"
@@ -702,6 +882,8 @@ function render(){
 
               </div>
 
+
+              <!-- ساعات الدوام -->
 
               <div class="day-controls">
 
@@ -715,8 +897,12 @@ function render(){
                     class="time-input"
                     type="time"
                     id="start-${s.day_of_week}"
-                    value="${s.start_time.slice(0,5)}"
-                    ${Number(s.day_of_week) === 5 ? "disabled" : ""}
+                    value="${normalizeTime(s.start_time)}"
+                    ${
+                      Number(s.day_of_week)===5
+                      ? "disabled"
+                      : ""
+                    }
                   >
 
                 </div>
@@ -732,8 +918,12 @@ function render(){
                     class="time-input"
                     type="time"
                     id="end-${s.day_of_week}"
-                    value="${s.end_time.slice(0,5)}"
-                    ${Number(s.day_of_week) === 5 ? "disabled" : ""}
+                    value="${normalizeTime(s.end_time)}"
+                    ${
+                      Number(s.day_of_week)===5
+                      ? "disabled"
+                      : ""
+                    }
                   >
 
                 </div>
@@ -746,11 +936,24 @@ function render(){
                     <input
                       type="checkbox"
                       id="open-${s.day_of_week}"
-                      ${s.is_open && Number(s.day_of_week) !== 5 ? "checked" : ""}
-                      ${Number(s.day_of_week) === 5 ? "disabled" : ""}
+                      ${
+                        s.is_open &&
+                        Number(s.day_of_week)!==5
+                        ? "checked"
+                        : ""
+                      }
+                      ${
+                        Number(s.day_of_week)===5
+                        ? "disabled"
+                        : ""
+                      }
                     >
 
-                    ${Number(s.day_of_week) === 5 ? "عطلة" : "مفتوح"}
+                    ${
+                      Number(s.day_of_week)===5
+                      ? "عطلة"
+                      : "مفتوح"
+                    }
 
                   </label>
 
@@ -758,58 +961,130 @@ function render(){
                   <button
                     class="save-day"
                     onclick="saveDay(${s.day_of_week})"
-                    ${Number(s.day_of_week) === 5 ? "disabled" : ""}
+                    ${
+                      Number(s.day_of_week)===5
+                      ? "disabled"
+                      : ""
+                    }
                   >
-                    ${Number(s.day_of_week) === 5 ? "عطلة ثابتة" : "💾 حفظ"}
+
+                    ${
+                      Number(s.day_of_week)===5
+                      ? "عطلة ثابتة"
+                      : "💾 حفظ"
+                    }
+
                   </button>
 
                 </div>
 
               </div>
 
+
+              <!-- =====================
+                   الفترات المغلقة
+              ====================== -->
+
               <div class="closed-periods">
 
-                <h3>الفترات المغلقة</h3>
+                <h3>
+                  الفترات المغلقة
+                </h3>
 
                 ${
-                  Number(s.day_of_week) === 5
-                  ? `<span class="small">عطلة أسبوعية ثابتة، لا يمكن إضافة فترات لها.</span>`
+                  Number(s.day_of_week)===5
+
+                  ? `
+                    <span class="small">
+                      عطلة أسبوعية ثابتة، لا يمكن إضافة فترات لها.
+                    </span>
+                  `
+
                   : `
-                    ${(s.closed_periods || []).map((period,index)=>`
-                      <div class="closed-period-row" data-day="${s.day_of_week}">
-                        <label>
-                          من
-                          <input
-                            class="time-input"
-                            type="time"
-                            data-period-start="${s.day_of_week}-${index}"
-                            value="${period.start_time.slice(0,5)}"
+
+                    <div class="closed-period-controls">
+
+                      <label>
+                        من
+
+                        <input
+                          class="time-input"
+                          type="time"
+                          id="closed-start-${s.day_of_week}"
+                        >
+
+                      </label>
+
+                      <label>
+                        إلى
+
+                        <input
+                          class="time-input"
+                          type="time"
+                          id="closed-end-${s.day_of_week}"
+                        >
+
+                      </label>
+
+                      <button
+                        type="button"
+                        class="add-closed-period"
+                        onclick="closePeriod(${s.day_of_week})"
+                      >
+                        إغلاق الوقت
+                      </button>
+
+                    </div>
+
+
+                    ${
+                      (s.closed_periods || [])
+                        .map((period,index)=>`
+
+                          <div
+                            class="closed-period-row"
+                            data-day="${s.day_of_week}"
                           >
-                        </label>
 
-                        <label>
-                          إلى
-                          <input
-                            class="time-input"
-                            type="time"
-                            data-period-end="${s.day_of_week}-${index}"
-                            value="${period.end_time.slice(0,5)}"
-                          >
-                        </label>
+                            <label>
+                              من
 
-                        <button type="button" onclick="removeClosedPeriod(${s.day_of_week},${index})">
-                          حذف الفترة
-                        </button>
-                      </div>
-                    `).join("")}
+                              <input
+                                class="time-input"
+                                type="time"
+                                data-period-start="${s.day_of_week}-${index}"
+                                value="${normalizeTime(period.start_time)}"
+                              >
 
-                    <button
-                      type="button"
-                      class="add-closed-period"
-                      onclick="addClosedPeriod(${s.day_of_week})"
-                    >
-                      + إضافة فترة مغلقة
-                    </button>
+                            </label>
+
+
+                            <label>
+                              إلى
+
+                              <input
+                                class="time-input"
+                                type="time"
+                                data-period-end="${s.day_of_week}-${index}"
+                                value="${normalizeTime(period.end_time)}"
+                              >
+
+                            </label>
+
+
+                            <button
+                              type="button"
+                              onclick="removeClosedPeriod(${s.day_of_week},${index})"
+                            >
+                              حذف الفترة
+                            </button>
+
+                          </div>
+
+                        `)
+                        .join("")
+                    }
+
                   `
                 }
 
@@ -823,7 +1098,9 @@ function render(){
       </div>
 
 
-      <!-- طلبات الحجز -->
+      <!-- =====================
+           طلبات الحجز
+      ====================== -->
 
       <div class="card" id="bookings-section">
 
@@ -835,6 +1112,7 @@ function render(){
 
           <tr>
 
+            <th>رقم الحجز</th>
             <th>التاريخ</th>
             <th>الوقت</th>
             <th>الاسم</th>
@@ -848,14 +1126,25 @@ function render(){
           ${
             state.bookings.map(b=>`
 
-              <tr class="${state.highlightedBookingId===b.id ? "booking-highlight" : ""}" id="booking-${b.id}">
+              <tr
+                class="${
+                  state.highlightedBookingId===b.id
+                  ? "booking-highlight"
+                  : ""
+                }"
+                id="booking-${b.id}"
+              >
 
                 <td>
-                  ${b.booking_date.slice(0,10)}
+                  B${b.id}
                 </td>
 
                 <td>
-                  ${b.booking_time.slice(0,5)}
+                  ${String(b.booking_date).slice(0,10)}
+                </td>
+
+                <td>
+                  ${String(b.booking_time).slice(0,5)}
                 </td>
 
                 <td>
@@ -871,46 +1160,53 @@ function render(){
                 </td>
 
                 <td>
+
                   ${
-                    b.status === 'approved'
-                    ? 'تم تأكيد الحجز'
-                    : b.status === 'rejected'
-                    ? 'تم رفض الحجز'
-                    : b.status === 'cancelled'
-                    ? '⚫ أُلغي من الزبونة'
-                    : 'قيد المراجعة'
+                    b.status==="approved"
+                    ? "تم تأكيد الحجز"
+                    : b.status==="rejected"
+                    ? "تم رفض الحجز"
+                    : b.status==="cancelled"
+                    ? "⚫ أُلغي من الزبونة"
+                    : "قيد المراجعة"
                   }
-                  ${b.status === 'cancelled'
-                    ? `<div class="small">${b.cancellation_note || 'لا توجد ملاحظة'}</div>`
-                    : ''}
+
+                  ${
+                    b.status==="cancelled"
+                    ? `
+                      <div class="small">
+                        ${b.cancellation_note || "لا توجد ملاحظة"}
+                      </div>
+                    `
+                    : ""
+                  }
+
                 </td>
 
                 <td class="actions">
 
                   ${
-                    b.status==='pending'
+                    b.status==="pending"
 
-                    ?
+                    ? `
+
+                      <button
+                        class="ok"
+                        onclick="status(${b.id},'approved')"
+                      >
+                        تأكيد الحجز
+                      </button>
+
+                      <button
+                        class="bad"
+                        onclick="status(${b.id},'rejected')"
+                      >
+                        رفض الحجز
+                      </button>
 
                     `
-                    <button
-                      class="ok"
-                      onclick="status(${b.id},'approved')"
-                    >
-                      تأكيد الحجز
-                    </button>
 
-                    <button
-                      class="bad"
-                      onclick="status(${b.id},'rejected')"
-                    >
-                      رفض الحجز
-                    </button>
-                    `
-
-                    :
-
-                    ""
+                    : ""
                   }
 
                   <button
@@ -937,68 +1233,99 @@ function render(){
 }
 
 
+/* =========================
+   واتساب
+========================= */
+
 function notifyWhatsApp(id){
 
-  const booking=state.bookings.find(b=>b.id===id);
+  const booking=
+    state.bookings.find(b=>b.id===id);
 
   if(!booking){
+
     alert("تعذر العثور على بيانات الحجز.");
     return;
+
   }
 
-  const phone=String(booking.phone || "").replace(/[^\d]/g, "");
+  const phone=
+    String(booking.phone || "")
+      .replace(/[^\d]/g,"");
 
   if(!phone){
+
     alert("لا يوجد رقم هاتف صالح لهذا الحجز.");
     return;
+
   }
 
-  const date=String(booking.booking_date).slice(0,10);
-  const time=String(booking.booking_time).slice(0,5);
+  const date=
+    String(booking.booking_date)
+      .slice(0,10);
+
+  const time=
+    String(booking.booking_time)
+      .slice(0,5);
+
   let message;
 
-  if(booking.status === "approved"){
-    message=`\u{1F338} مرحباً ${booking.name}،
+  if(booking.status==="approved"){
+
+    message=`🌸 مرحباً ${booking.name}،
 تم تأكيد حجزك في عيادة Baraa Aesthetics.
 
-\u{1F4CB} رقم الحجز: ${booking.id}
-\u{1F486}\u{200D}\u{2640}\u{FE0F} الخدمة: ${booking.service}
-\u{1F4C5} التاريخ: ${date}
-\u{1F550} الوقت: ${time}
+📋 رقم الحجز: ${booking.id}
+💆‍♀️ الخدمة: ${booking.service}
+📅 التاريخ: ${date}
+🕐 الوقت: ${time}
 
-نتمنى لك موعداً سعيداً \u{1F337}`;
-  }else if(booking.status === "rejected"){
-    message=`\u{1F338} مرحباً ${booking.name}،
+نتمنى لك موعداً سعيداً 🌷`;
+
+  }else if(booking.status==="rejected"){
+
+    message=`🌸 مرحباً ${booking.name}،
 نعتذر، تم رفض الحجز في عيادة Baraa Aesthetics.
 
-\u{1F4CB} رقم الحجز: ${booking.id}
-\u{1F486}\u{200D}\u{2640}\u{FE0F} الخدمة: ${booking.service}
-\u{1F4C5} التاريخ: ${date}
-\u{1F550} الوقت: ${time}
+📋 رقم الحجز: ${booking.id}
+💆‍♀️ الخدمة: ${booking.service}
+📅 التاريخ: ${date}
+🕐 الوقت: ${time}
 
 يمكنك التواصل معنا لمعرفة إمكانية حجز موعد آخر.`;
+
   }else{
-    message=`\u{1F338} مرحباً ${booking.name}،
+
+    message=`🌸 مرحباً ${booking.name}،
 حجزك في عيادة Baraa Aesthetics ما زال قيد المراجعة.
 
-\u{1F4CB} رقم الحجز: ${booking.id}
-\u{1F486}\u{200D}\u{2640}\u{FE0F} الخدمة: ${booking.service}
-\u{1F4C5} التاريخ: ${date}
-\u{1F550} الوقت: ${time}
+📋 رقم الحجز: ${booking.id}
+💆‍♀️ الخدمة: ${booking.service}
+📅 التاريخ: ${date}
+🕐 الوقت: ${time}
 
 سنتواصل معك عند تحديث حالة الحجز.`;
+
   }
 
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+  window.open(
+    `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+    "_blank",
+    "noopener,noreferrer"
+  );
 
 }
 
 
+/* =========================
+   تسجيل الدخول
+========================= */
+
 async function login(){
 
-  const u = document.getElementById("u");
-  const p = document.getElementById("p");
-  const msg = document.getElementById("msg");
+  const u=document.getElementById("u");
+  const p=document.getElementById("p");
+  const msg=document.getElementById("msg");
 
   if(!u || !p){
     return;
@@ -1019,8 +1346,11 @@ async function login(){
     );
 
     state.logged=true;
+
     resetNotificationState();
+
     await load();
+
     startPolling();
 
   }catch(e){
@@ -1033,6 +1363,10 @@ async function login(){
 
 }
 
+
+/* =========================
+   تسجيل الخروج
+========================= */
 
 async function logout(){
 
@@ -1053,16 +1387,28 @@ async function logout(){
 }
 
 
+/* =========================
+   تحميل البيانات
+========================= */
+
 async function load(){
 
-  state.stats=await api("/admin/stats");
+  state.stats=
+    await api("/admin/stats");
+
   await refreshBookings();
-  state.settings=await api("/settings");
+
+  state.settings=
+    await api("/settings");
 
   render();
 
 }
 
+
+/* =========================
+   حالة الحجز
+========================= */
 
 async function status(id,s){
 
@@ -1090,7 +1436,9 @@ async function status(id,s){
 }
 
 
-/* فتح وإغلاق اليوم */
+/* =========================
+   فتح وإغلاق اليوم
+========================= */
 
 async function toggleDay(day,open){
 
@@ -1118,63 +1466,78 @@ async function toggleDay(day,open){
 }
 
 
-/* حفظ ساعات الدوام */
+/* =========================
+   قراءة الفترات المغلقة
+========================= */
 
 function readClosedPeriods(day){
 
   return Array.from(
-    document.querySelectorAll('.closed-period-row[data-day="'+day+'"]')
+    document.querySelectorAll(
+      '.closed-period-row[data-day="'+day+'"]'
+    )
   ).map(row=>({
-    start_time:row.querySelector('[data-period-start]')?.value || "",
-    end_time:row.querySelector('[data-period-end]')?.value || ""
+
+    start_time:
+      row.querySelector(
+        '[data-period-start]'
+      )?.value || "",
+
+    end_time:
+      row.querySelector(
+        '[data-period-end]'
+      )?.value || ""
+
   }));
 
 }
 
 
-function addClosedPeriod(day){
-
-  if(Number(day) === 5){
-    return;
-  }
-
-  const setting=state.settings.find(s=>Number(s.day_of_week)===Number(day));
-
-  if(!setting){
-    return;
-  }
-
-  setting.closed_periods=readClosedPeriods(day);
-  setting.closed_periods.push({start_time:"",end_time:""});
-  render();
-
-}
-
+/* =========================
+   حذف فترة مغلقة
+========================= */
 
 function removeClosedPeriod(day,index){
 
-  if(Number(day) === 5){
+  if(Number(day)===5){
     return;
   }
 
-  const setting=state.settings.find(s=>Number(s.day_of_week)===Number(day));
+  const setting=
+    state.settings.find(
+      s=>Number(s.day_of_week)===Number(day)
+    );
 
   if(!setting){
     return;
   }
 
-  setting.closed_periods=readClosedPeriods(day);
-  setting.closed_periods.splice(index,1);
-  render();
+  setting.closed_periods=
+    readClosedPeriods(day);
+
+  setting.closed_periods.splice(
+    index,
+    1
+  );
+
+  persistDaySettings(
+    day,
+    setting.closed_periods,
+    "تم إلغاء إغلاق الفترة"
+  );
 
 }
 
-async function saveDay(day){
 
-  if(Number(day) === 5){
-    alert("الجمعة عطلة أسبوعية ثابتة للعيادة");
-    return;
-  }
+/* =========================
+   حفظ إعدادات اليوم
+========================= */
+
+async function persistDaySettings(
+  day,
+  closed_periods,
+  successMessage
+){
 
   const startInput=
     document.getElementById("start-"+day);
@@ -1185,63 +1548,29 @@ async function saveDay(day){
   const openInput=
     document.getElementById("open-"+day);
 
+  if(!startInput || !endInput || !openInput){
 
-  const start_time=startInput.value;
-
-  const end_time=endInput.value;
-
-  const is_open=openInput.checked;
-  const closed_periods=readClosedPeriods(day);
-
-
-  if(!start_time || !end_time){
-
-    alert("يرجى تحديد وقت البداية والنهاية");
-
+    alert("تعذر قراءة إعدادات هذا اليوم.");
     return;
 
   }
 
+  const startTime=
+    normalizeTime(startInput.value);
 
-  if(start_time>=end_time){
+  const endTime=
+    normalizeTime(endInput.value);
 
-    alert(
-      "وقت النهاية يجب أن يكون بعد وقت البداية"
-    );
+  const periods=
+    (closed_periods || []).map(period=>({
 
-    return;
+      start_time:
+        normalizeTime(period.start_time)+":00",
 
-  }
+      end_time:
+        normalizeTime(period.end_time)+":00"
 
-  const startMinutes=value=>{
-    const [hours,minutes]=value.split(":").map(Number);
-    return hours*60+minutes;
-  };
-
-  const dayStart=startMinutes(start_time);
-  const dayEnd=startMinutes(end_time);
-  const sortedPeriods=closed_periods
-    .map(period=>({
-      ...period,
-      start:startMinutes(period.start_time),
-      end:startMinutes(period.end_time)
-    }))
-    .sort((a,b)=>a.start-b.start);
-
-  for(let index=0; index<sortedPeriods.length; index++){
-    const period=sortedPeriods[index];
-
-    if(!period.start_time || !period.end_time || period.start>=period.end || period.start<dayStart || period.end>dayEnd){
-      alert("يرجى التأكد من أن كل فترة مغلقة داخل ساعات الدوام وبداية الفترة قبل نهايتها");
-      return;
-    }
-
-    if(index>0 && period.start<sortedPeriods[index-1].end){
-      alert("لا يمكن أن تتداخل الفترات المغلقة");
-      return;
-    }
-  }
-
+    }));
 
   try{
 
@@ -1252,26 +1581,21 @@ async function saveDay(day){
 
         body:JSON.stringify({
 
-          is_open:is_open,
+          is_open:openInput.checked,
 
-          start_time:start_time+":00",
+          start_time:startTime+":00",
 
-          end_time:end_time+":00",
+          end_time:endTime+":00",
 
-          closed_periods:closed_periods.map(period=>({
-            start_time:period.start_time+":00",
-            end_time:period.end_time+":00"
-          }))
+          closed_periods:periods
 
         })
       }
     );
 
-
-    alert(
-      "تم حفظ أوقات الدوام بنجاح"
-    );
-
+    if(successMessage){
+      alert(successMessage);
+    }
 
     await load();
 
@@ -1284,23 +1608,346 @@ async function saveDay(day){
 }
 
 
-/* التحقق من جلسة الإدارة */
+/* =========================
+   إغلاق فترة
+========================= */
+
+async function closePeriod(day){
+
+  if(Number(day)===5){
+    return;
+  }
+
+  const setting=
+    state.settings.find(
+      s=>Number(s.day_of_week)===Number(day)
+    );
+
+  const startInput=
+    document.getElementById(
+      "closed-start-"+day
+    );
+
+  const endInput=
+    document.getElementById(
+      "closed-end-"+day
+    );
+
+  const startTime=
+    normalizeTime(startInput?.value);
+
+  const endTime=
+    normalizeTime(endInput?.value);
+
+  if(!setting || !startTime || !endTime){
+
+    alert(
+      "يرجى تحديد وقت بداية ونهاية الإغلاق"
+    );
+
+    return;
+
+  }
+
+  if(!setting.is_open){
+
+    alert(
+      "لا يمكن إضافة فترة مغلقة ليوم مغلق بالكامل."
+    );
+
+    return;
+
+  }
+
+  const start=timeMinutes(startTime);
+  const end=timeMinutes(endTime);
+
+  const dayStart=
+    timeMinutes(setting.start_time);
+
+  const dayEnd=
+    timeMinutes(setting.end_time);
+
+  if(
+    !Number.isFinite(start) ||
+    !Number.isFinite(end) ||
+    !Number.isFinite(dayStart) ||
+    !Number.isFinite(dayEnd)
+  ){
+
+    alert("الوقت المحدد غير صالح.");
+    return;
+
+  }
+
+  if(start>=end){
+
+    alert(
+      "يجب أن تكون نهاية الفترة بعد بدايتها."
+    );
+
+    return;
+
+  }
+
+  if(start<dayStart || end>dayEnd){
+
+    alert(
+      "فترة الإغلاق يجب أن تكون داخل ساعات الدوام."
+    );
+
+    return;
+
+  }
+
+  const periods=
+    (setting.closed_periods || [])
+      .map(period=>({
+
+        start_time:
+          normalizeTime(period.start_time),
+
+        end_time:
+          normalizeTime(period.end_time)
+
+      }));
+
+  const overlaps=
+    periods.some(period=>{
+
+      const existingStart=
+        timeMinutes(period.start_time);
+
+      const existingEnd=
+        timeMinutes(period.end_time);
+
+      return(
+        start<existingEnd &&
+        end>existingStart
+      );
+
+    });
+
+  if(overlaps){
+
+    alert(
+      "فترة الإغلاق تتداخل مع فترة مغلقة أخرى."
+    );
+
+    return;
+
+  }
+
+  await persistDaySettings(
+    day,
+    [
+      ...periods,
+      {
+        start_time:startTime,
+        end_time:endTime
+      }
+    ],
+    "تم إغلاق الفترة بنجاح"
+  );
+
+}
+
+
+/* =========================
+   حفظ ساعات الدوام
+========================= */
+
+async function saveDay(day){
+
+  if(Number(day)===5){
+
+    alert(
+      "الجمعة عطلة أسبوعية ثابتة للعيادة"
+    );
+
+    return;
+
+  }
+
+  const startInput=
+    document.getElementById(
+      "start-"+day
+    );
+
+  const endInput=
+    document.getElementById(
+      "end-"+day
+    );
+
+  const openInput=
+    document.getElementById(
+      "open-"+day
+    );
+
+  if(!startInput || !endInput || !openInput){
+
+    alert("تعذر قراءة إعدادات اليوم.");
+    return;
+
+  }
+
+  const startTime=
+    normalizeTime(startInput.value);
+
+  const endTime=
+    normalizeTime(endInput.value);
+
+  const isOpen=
+    openInput.checked;
+
+  const closedPeriods=
+    readClosedPeriods(day);
+
+  if(!startTime || !endTime){
+
+    alert(
+      "يرجى تحديد وقت البداية والنهاية."
+    );
+
+    return;
+
+  }
+
+  const dayStart=timeMinutes(startTime);
+  const dayEnd=timeMinutes(endTime);
+
+  if(
+    !Number.isFinite(dayStart) ||
+    !Number.isFinite(dayEnd)
+  ){
+
+    alert("وقت الدوام غير صالح.");
+    return;
+
+  }
+
+  if(dayStart>=dayEnd){
+
+    alert(
+      "وقت النهاية يجب أن يكون بعد وقت البداية."
+    );
+
+    return;
+
+  }
+
+  const sortedPeriods=
+    closedPeriods
+      .map(period=>({
+
+        start_time:
+          normalizeTime(period.start_time),
+
+        end_time:
+          normalizeTime(period.end_time),
+
+        start:
+          timeMinutes(period.start_time),
+
+        end:
+          timeMinutes(period.end_time)
+
+      }))
+      .sort(
+        (a,b)=>a.start-b.start
+      );
+
+  for(
+    let index=0;
+    index<sortedPeriods.length;
+    index++
+  ){
+
+    const period=
+      sortedPeriods[index];
+
+    if(
+      !period.start_time ||
+      !period.end_time ||
+      !Number.isFinite(period.start) ||
+      !Number.isFinite(period.end) ||
+      period.start>=period.end ||
+      period.start<dayStart ||
+      period.end>dayEnd
+    ){
+
+      alert(
+        "يرجى التأكد من أن كل فترة مغلقة داخل ساعات الدوام وبداية الفترة قبل نهايتها."
+      );
+
+      return;
+
+    }
+
+    if(
+      index>0 &&
+      period.start<
+      sortedPeriods[index-1].end
+    ){
+
+      alert(
+        "لا يمكن أن تتداخل الفترات المغلقة."
+      );
+
+      return;
+
+    }
+
+  }
+
+  await persistDaySettings(
+    day,
+    closedPeriods,
+    "تم حفظ أوقات الدوام بنجاح"
+  );
+
+}
+
+
+/* =========================
+   إيقاف Polling
+========================= */
+
+window.addEventListener(
+  "pagehide",
+  stopPolling
+);
+
+
+/* =========================
+   التحقق من جلسة الإدارة
+========================= */
 
 api("/admin/me")
+
   .then(()=>{
+
     state.logged=true;
+
     resetNotificationState();
+
     return load();
+
   })
+
   .then(()=>{
+
     startPolling();
+
   })
+
   .catch(()=>{
+
     render();
+
   });
 
 </script>
 
 </body>
 </html>
-

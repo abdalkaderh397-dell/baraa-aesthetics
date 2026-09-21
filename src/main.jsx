@@ -235,6 +235,34 @@ function App() {
       : NaN;
   };
 
+  const dayOfWeekFromDate = (value) => {
+    const [year, month, day] = String(value)
+      .slice(0, 10)
+      .split("-")
+      .map(Number);
+
+    if (![year, month, day].every(Number.isFinite)) {
+      return NaN;
+    }
+
+    let adjustedYear = year;
+    let adjustedMonth = month;
+
+    if (adjustedMonth < 3) {
+      adjustedYear -= 1;
+      adjustedMonth += 12;
+    }
+
+    return (
+      adjustedYear +
+      Math.floor(adjustedYear / 4) -
+      Math.floor(adjustedYear / 100) +
+      Math.floor(adjustedYear / 400) +
+      Math.floor((13 * adjustedMonth + 8) / 5) +
+      day
+    ) % 7;
+  };
+
   const isClosedPeriodSlot = (slot, periods = []) => {
     const minutes = timeToMinutes(slot);
 
@@ -327,16 +355,7 @@ function App() {
 
     setLoadingSlots(true);
 
-    /*
-      استخدام التاريخ المحلي بدل UTC
-      حتى لا يتغير اليوم بسبب فرق التوقيت.
-    */
-    const selectedDate = new Date(
-      form.date + "T00:00:00"
-    );
-
-    const dayOfWeek =
-      selectedDate.getDay();
+    const dayOfWeek = dayOfWeekFromDate(form.date);
 
     if (dayOfWeek === 5) {
       setAvailable([]);
@@ -521,10 +540,7 @@ function App() {
     setMessage("");
     setBookingSummary(null);
 
-    if (
-      form.date &&
-      new Date(form.date + "T00:00:00").getDay() === 5
-    ) {
+    if (form.date && dayOfWeekFromDate(form.date) === 5) {
       setMessage(
         t(
           "الجمعة عطلة أسبوعية للعيادة.",
@@ -660,43 +676,12 @@ function App() {
   };
 
   /*
-    تنسيق تاريخ الحجز
-    نستخدم منطقة العيادة الزمنية حتى لا ينقص اليوم بسبب UTC.
+    تاريخ الحجز قيمة تاريخ فقط، لذلك لا نحوله إلى كائن Date.
   */
   const formatBookingDate = (
     value
   ) => {
-    if (!value) {
-      return "";
-    }
-
-    try {
-      const date =
-        new Date(value);
-
-      if (Number.isNaN(date.getTime())) {
-        return String(value).slice(
-          0,
-          10
-        );
-      }
-
-      return new Intl.DateTimeFormat(
-        ar ? "ar-SY" : "en-GB",
-        {
-          timeZone:
-            "Asia/Damascus",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit"
-        }
-      ).format(date);
-    } catch {
-      return String(value).slice(
-        0,
-        10
-      );
-    }
+    return value ? String(value).slice(0, 10) : "";
   };
 
   /*
@@ -1642,14 +1627,9 @@ function App() {
                   <input
                     type="date"
                     required
-                    min={
-                      new Date()
-                        .toISOString()
-                        .slice(
-                          0,
-                          10
-                        )
-                    }
+                   min={new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Damascus"
+}).format(new Date())}
                     value={
                       form.date
                     }
@@ -1719,14 +1699,10 @@ function App() {
                   0 && (
                   <div className="formMessage">
                     {t(
-                      new Date(
-                        form.date + "T00:00:00"
-                      ).getDay() === 5
+                      dayOfWeekFromDate(form.date) === 5
                         ? "الجمعة عطلة أسبوعية للعيادة."
                         : "لا توجد مواعيد متاحة في هذا اليوم.",
-                      new Date(
-                        form.date + "T00:00:00"
-                      ).getDay() === 5
+                      dayOfWeekFromDate(form.date) === 5
                         ? "Friday is the clinic's weekly day off."
                         : "There are no available appointments on this day."
                     )}
@@ -1903,7 +1879,7 @@ function App() {
                       </small>
 
                       <strong>
-                        #{bookingSummary.id}
+                        B{bookingSummary.id}
                       </strong>
                     </div>
 

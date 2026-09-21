@@ -15,6 +15,7 @@ const pool = mysql.createPool({
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "baraa_aesthetics",
+  dateStrings: true,
   waitForConnections: true,
   connectionLimit: 10
 });
@@ -270,10 +271,15 @@ app.post("/api/admin/login", async (req,res)=>{
 });
 app.post("/api/admin/logout",(req,res)=>req.session.destroy(()=>res.json({ok:true})));
 app.get("/api/admin/me",auth,(req,res)=>res.json({ok:true,username:req.session.adminUsername}));
-
 app.get("/api/admin/bookings",auth,async(req,res)=>{
-  const [rows] = await pool.query("SELECT * FROM bookings ORDER BY booking_date DESC, booking_time DESC, id DESC");
+
+  const [rows] = await pool.query(
+    "SELECT id,service,DATE_FORMAT(booking_date,'%Y-%m-%d') AS booking_date,booking_time,name,phone,notes,status,created_at,cancelled_at,cancellation_note FROM bookings ORDER BY booking_date DESC, booking_time DESC, id DESC"
+  );
+
+
   res.json(rows);
+
 });
 app.patch("/api/admin/bookings/:id",auth,async(req,res)=>{
   const {status}=req.body||{};
