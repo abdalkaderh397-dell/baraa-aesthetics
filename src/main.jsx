@@ -26,8 +26,7 @@ import {
 
 import "./style.css";
 
-const API = "http://localhost:8000/api";
-
+const API = "https://baraa-aesthetics-production.up.railway.app/api";
 const serviceGroups = [
   {
     titleAr: "إبر النضارة",
