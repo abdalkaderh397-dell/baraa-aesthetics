@@ -1,0 +1,274 @@
+:root {
+  font-family: "Cairo", sans-serif;
+  color: #292827;
+  background: #fff9f6;
+  --primary: #f690a6;
+  --primary-soft: #fce1e7;
+  --cream: #fff9f6;
+  --cream-deep: #fff1f2;
+  --charcoal: #292827;
+  --greige: #b8aea1;
+  --greige-dark: #918579;
+  --rose-gold: #b98b7b;
+  --muted: #918579;
+  --ink: #292827;
+  --card: #ffffff;
+  --line: rgba(145, 133, 121, 0.24);
+  --shadow: 0 16px 42px rgba(185, 139, 123, 0.12);
+  --shadow-soft: 0 8px 24px rgba(185, 139, 123, 0.09);
+  --text-main: #292827;
+  --text-soft: #918579;
+  --surface-dark: #292827;
+  --surface-card: #342f30;
+  --surface-soft: #2f2b2c;
+  --border-soft: rgba(246, 144, 166, .25);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--cream); color: var(--ink); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+.container { width: min(1140px, calc(100% - 40px)); margin: auto; }
+
+.header { position: sticky; top: 0; z-index: 50; background: rgba(255, 249, 246, .9); border-bottom: 1px solid var(--line); backdrop-filter: blur(18px); }
+.navWrap { height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.brand { display: flex; align-items: center; gap: 10px; border: 0; background: none; color: inherit; text-align: start; }
+.brandMark { width: 42px; height: 42px; border: 1px solid var(--primary); border-radius: 50%; display: grid; place-items: center; color: var(--primary); font-family: "Playfair Display", Georgia, serif; font-weight: 700; }
+.brand b { display: block; font-family: "Playfair Display", Georgia, serif; font-size: 20px; }
+.brand small { display: block; color: var(--muted); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; }
+.nav { display: flex; gap: 5px; }
+.nav button, .tools button { border: 0; border-radius: 10px; background: transparent; color: inherit; padding: 9px 10px; transition: background 180ms ease, color 180ms ease; }
+.nav button:hover, .tools button:hover { background: var(--primary-soft); color: var(--charcoal); }
+.tools { display: flex; align-items: center; gap: 3px; }
+.tools button { display: flex; align-items: center; gap: 5px; }
+.menuBtn { display: none; }
+
+.hero { position: relative; overflow: hidden; padding: 96px 0 78px; background: linear-gradient(120deg, var(--cream), #fffafa 56%, var(--primary-soft) 160%); }
+.heroGrid { display: grid; grid-template-columns: 1.08fr .92fr; align-items: center; gap: 70px; }
+.eyebrow, .sectionTag { display: inline-flex; align-items: center; gap: 7px; color: var(--primary); font-size: 13px; font-weight: 700; }
+.hero h1 { max-width: 700px; margin: 18px 0; font-size: clamp(42px, 6vw, 74px); line-height: 1.12; }
+.hero p, .sectionHead p, .twoCol p { color: var(--muted); font-size: 16px; line-height: 2; }
+.heroActions { display: flex; gap: 12px; margin: 28px 0; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid transparent; border-radius: 10px; padding: 13px 19px; transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease; }
+.btn:hover { transform: translateY(-2px); }
+.btn.primary { background: var(--primary); box-shadow: 0 8px 20px rgba(246, 144, 166, .24); color: #fff; }
+.btn.primary:hover { background: #eb7f98; box-shadow: 0 12px 26px rgba(246, 144, 166, .3); }
+.btn.ghost { border-color: var(--line); background: rgba(255, 255, 255, .42); color: inherit; }
+.btn.ghost:hover { border-color: var(--primary); background: var(--primary-soft); }
+.heroStats, .facts { display: flex; gap: 28px; margin-top: 40px; }
+.heroStats div, .facts div { display: flex; flex-direction: column; }
+.heroStats b { font-size: 20px; }
+.heroStats span, .facts span { color: var(--muted); font-size: 11px; }
+.heroVisual { position: relative; display: grid; min-height: 470px; place-items: center; }
+.orb { position: absolute; width: 390px; height: 390px; border: 1px solid rgba(246, 144, 166, .22); border-radius: 50%; background: var(--primary-soft); box-shadow: inset 0 0 70px rgba(255, 255, 255, .8); }
+.heroCard { position: relative; width: min(370px, 90%); padding: 55px 35px; border: 1px solid rgba(246, 144, 166, .28); border-radius: 24px; background: rgba(255, 255, 255, .78); box-shadow: var(--shadow); backdrop-filter: blur(15px); text-align: center; }
+.logoBig { color: var(--primary); font: 700 72px "Playfair Display", Georgia, serif; }
+.heroCard h3 { margin: 5px; font: 26px "Playfair Display", Georgia, serif; }
+.heroCard p { color: var(--muted); }
+.locationPill { display: inline-flex; align-items: center; gap: 6px; border-radius: 20px; background: var(--primary-soft); padding: 9px 12px; color: var(--charcoal); font-size: 11px; }
+
+.section { padding: 90px 0; }
+.soft { background: var(--cream-deep); }
+.twoCol { display: grid; grid-template-columns: 1.2fr .8fr; align-items: center; gap: 70px; }
+.section h2 { margin: 12px 0 20px; font-size: clamp(30px, 4vw, 48px); line-height: 1.3; }
+.facts { gap: 35px; margin-top: 30px; }
+.facts b { font-size: 25px; }
+.quoteCard { padding: 45px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); }
+.quoteCard svg, .clinicCard svg, .serviceCard > svg, .infoBox svg, .contactLinks svg { color: var(--primary); }
+.quoteCard p { font-size: 14px !important; }
+.sectionHead { max-width: 720px; margin-bottom: 38px; }
+.clinicGrid, .serviceGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.clinicCard, .serviceCard { border: 1px solid var(--line); background: var(--card); box-shadow: var(--shadow-soft); }
+.clinicCard { padding: 30px; border-radius: 16px; }
+.clinicCard p, .serviceCard p { color: var(--muted); font-size: 14px; line-height: 1.9; }
+.serviceGrid { grid-template-columns: repeat(4, 1fr); }
+.serviceCard { position: relative; display: flex; min-height: 285px; flex-direction: column; padding: 27px; border-radius: 16px; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.serviceCard:hover, .clinicCard:hover { border-color: rgba(246, 144, 166, .5); box-shadow: 0 14px 32px rgba(185, 139, 123, .14); }
+.serviceNo { position: absolute; top: 22px; left: 22px; color: var(--primary); font-size: 11px; }
+.serviceImages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 16px 0 4px; }
+.serviceImages img { width: 100%; height: 78px; border-radius: 9px; object-fit: cover; }
+.serviceCard h3 { margin: 22px 0 8px; font-size: 19px; }
+.serviceCard button { display: flex; align-items: center; gap: 5px; margin-top: auto; border: 0; background: none; color: var(--primary); font-weight: 700; padding: 0; }
+.serviceCard button:hover { color: var(--rose-gold); }
+.miniList { display: grid; gap: 2px; margin: 4px 0 16px; }
+.miniList span { color: var(--muted); font-size: 11px; }
+
+.highlight { background: var(--charcoal); color: #fff; }
+.highlight .sectionTag, .timeline b { color: var(--primary); }
+.highlight h2 { color: #fff; }
+.highlightGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 70px; }
+.timeline { display: grid; gap: 22px; border-inline-start: 1px solid rgba(246, 144, 166, .4); padding-inline-start: 30px; }
+.timeline div { display: grid; grid-template-columns: 70px 1fr; gap: 15px; }
+.galleryGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.galleryItem { position: relative; display: grid; height: 220px; place-items: center; overflow: hidden; border-radius: 16px; background: var(--primary-soft); }
+.galleryItem img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
+.galleryItem div { position: relative; display: grid; gap: 4px; border-radius: 13px; background: rgba(255, 255, 255, .78); padding: 15px 25px; text-align: center; }
+.galleryItem span { color: var(--primary); font: 700 24px "Playfair Display", Georgia, serif; }
+.note { margin-top: 15px; color: var(--muted); font-size: 12px; }
+
+.bookingGrid { display: grid; grid-template-columns: .85fr 1.15fr; gap: 60px; }
+.infoBox { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--muted); font-size: 13px; }
+.bookingForm { display: grid; gap: 15px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); padding: 30px; box-shadow: var(--shadow); }
+.bookingForm label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; }
+.bookingForm input, .bookingForm select, .bookingForm textarea { outline: none; border: 1px solid var(--line); border-radius: 9px; background: var(--cream); color: inherit; padding: 11px; transition: border-color 180ms ease, box-shadow 180ms ease; }
+.bookingForm input:focus, .bookingForm select:focus, .bookingForm textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(246, 144, 166, .16); }
+.formRow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.formMessage { border-radius: 9px; background: var(--primary-soft); color: #7d4e5c; padding: 12px; font-size: 13px; line-height: 1.7; }
+.faq details { border-bottom: 1px solid var(--line); padding: 18px 0; }
+.faq summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; font-weight: 700; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq p { color: var(--muted); line-height: 1.9; }
+.contactCard { display: flex; align-items: center; justify-content: space-between; gap: 40px; border: 1px solid rgba(246, 144, 166, .28); border-radius: 20px; background: var(--primary-soft); padding: 45px; }
+.contactLinks { display: grid; gap: 13px; color: var(--ink); font-size: 13px; }
+.contactLinks a, .contactLinks span { display: flex; align-items: center; gap: 9px; }
+.socialLinks { display: grid; gap: 13px; }
+.socialLinks a { transition: color 180ms ease; }
+.socialLinks a:hover { color: var(--primary); }
+.bookingModal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(48, 51, 49, .45); padding: 20px; }
+.bookingModalContent { width: min(100%, 460px); border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 28px; box-shadow: var(--shadow); }
+.bookingModalContent h3 { margin: 0 0 10px; }
+.bookingModalContent p { color: var(--muted); font-size: 13px; line-height: 1.8; }
+.bookingModalContent label { display: grid; gap: 7px; margin-top: 18px; font-size: 12px; font-weight: 700; }
+.bookingModalContent textarea { resize: vertical; outline: none; border: 1px solid var(--line); border-radius: 9px; background: var(--cream); color: inherit; padding: 11px; font: inherit; }
+.bookingModalActions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.footer { border-top: 1px solid var(--line); padding: 25px 0; }
+.footerInner { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+
+.dark { --primary-soft: rgba(246, 144, 166, .12); --cream: #292827; --cream-deep: #342f30; --charcoal: #fff9f6; --muted: #d8d0ca; --ink: #fff9f6; --card: #342f30; --line: rgba(246, 144, 166, .25); --shadow: 0 16px 42px rgba(0, 0, 0, .28); --shadow-soft: 0 8px 24px rgba(0, 0, 0, .18); --text-main: #fff9f6; --text-soft: #d8d0ca; --surface-dark: #292827; --surface-card: #342f30; --surface-soft: #2f2b2c; --border-soft: rgba(246, 144, 166, .25); }
+.dark, .dark body { background: var(--cream); color: var(--ink); }
+.dark .header { background: rgba(41, 40, 39, .9); border-bottom-color: var(--line); }
+.dark .hero { background: linear-gradient(120deg, #292827, #342f30 58%, #4b3a3d 160%); }
+.dark .heroCard { background: rgba(52, 47, 48, .9); border-color: var(--border-soft); }
+.dark .orb { background: rgba(246, 144, 166, .16); border-color: rgba(246, 144, 166, .28); }
+.dark .soft { background: var(--cream-deep); }
+.dark .brand,
+.dark .brand b,
+.dark .brand small,
+.dark .nav,
+.dark .nav button,
+.dark .nav a,
+.dark .tools button,
+.dark .heroCopy,
+.dark .heroCopy h1,
+.dark .heroCopy p,
+.dark .hero .eyebrow,
+.dark .heroCard h3,
+.dark .heroCard p,
+.dark .sectionHead,
+.dark .sectionHead h2,
+.dark .sectionHead p,
+.dark .serviceCard,
+.dark .serviceCard h3,
+.dark .serviceCard p,
+.dark .clinicCard,
+.dark .clinicCard h3,
+.dark .clinicCard p,
+.dark .infoBox,
+.dark .bookingForm,
+.dark .bookingForm label,
+.dark .faq,
+.dark .faq summary,
+.dark .faq p,
+.dark .contactCard,
+.dark .contactCard h2,
+.dark .contactLinks,
+.dark .contactLinks a,
+.dark .contactLinks span,
+.dark .footer,
+.dark .footerInner {
+  color: var(--text-main);
+}
+.dark .heroCopy p,
+.dark .sectionHead p,
+.dark .twoCol p,
+.dark .serviceCard p,
+.dark .clinicCard p,
+.dark .faq p,
+.dark .infoBox,
+.dark .brand small,
+.dark .miniList span,
+.dark .footerInner,
+.dark .heroStats span,
+.dark .facts span,
+.dark .locationPill,
+.dark .note {
+  color: var(--text-soft);
+}
+.dark .brand small,
+.dark .locationPill,
+.dark .miniList span,
+.dark .nav button:hover,
+.dark .tools button:hover,
+.dark .btn.ghost {
+  color: var(--text-main);
+}
+.dark .btn.ghost { background: rgba(255, 255, 255, .03); border-color: var(--line); }
+.dark .btn.ghost:hover { background: rgba(246, 144, 166, .12); border-color: rgba(246, 144, 166, .4); }
+.dark .heroCard p,
+.dark .locationPill,
+.dark .infoBox,
+.dark .serviceCard p,
+.dark .clinicCard p,
+.dark .faq p,
+.dark .footerInner,
+.dark .contactLinks a,
+.dark .contactLinks span {
+  opacity: 1;
+}
+.dark .bookingForm input,
+.dark .bookingForm select,
+.dark .bookingForm textarea {
+  background: #292526;
+  color: var(--text-main);
+  border-color: var(--line);
+}
+.dark .formMessage {
+  background: rgba(246, 144, 166, .12);
+  color: #ffe9ee;
+}
+.dark .nav button:hover, .dark .tools button:hover { background: rgba(246, 144, 166, .12); color: var(--ink); }
+.dark .serviceCard, .dark .clinicCard, .dark .bookingForm, .dark .quoteCard, .dark .contactCard {
+  border-color: var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.dark .serviceCard:hover, .dark .clinicCard:hover { border-color: rgba(246, 144, 166, .4); }
+.dark .contactCard { background: rgba(246, 144, 166, .08); }
+.dark .footer { background: rgba(0, 0, 0, .08); }
+.dark .highlight { background: #1f1d1d; }
+.dark .highlight h2 { color: #fff9f6; }
+.dark .highlight .sectionTag, .dark .timeline b { color: var(--primary); }
+
+@media (max-width: 900px) {
+  .nav { position: absolute; top: 76px; right: 20px; left: 20px; display: none; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 12px; box-shadow: var(--shadow); }
+  .nav.open { display: flex; }
+  .menuBtn { display: flex !important; }
+  .heroGrid, .twoCol, .bookingGrid, .highlightGrid { grid-template-columns: 1fr; gap: 35px; }
+  .heroVisual { min-height: 390px; }
+  .serviceGrid { grid-template-columns: repeat(2, 1fr); }
+  .clinicGrid { grid-template-columns: 1fr; }
+  .galleryGrid { grid-template-columns: repeat(2, 1fr); }
+  .contactCard { display: grid; }
+  .navWrap { height: 68px; }
+}
+
+@media (max-width: 560px) {
+  .container { width: min(100% - 26px, 1140px); }
+  .hero { padding: 60px 0; }
+  .hero h1 { font-size: 40px; }
+  .heroActions { flex-wrap: wrap; }
+  .heroStats { gap: 15px; }
+  .serviceGrid, .galleryGrid { grid-template-columns: 1fr; }
+  .galleryItem { height: 200px; }
+  .serviceImages img { height: 92px; }
+  .formRow { grid-template-columns: 1fr; }
+  .section { padding: 65px 0; }
+  .contactCard { padding: 28px; }
+  .heroVisual { min-height: 320px; }
+  .orb { width: 280px; height: 280px; }
+  .heroCard { padding: 35px 20px; }
+  .tools button { padding: 8px; }
+  .brand small { letter-spacing: 2px; }
+}

@@ -1,0 +1,1306 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Baraa Aesthetics Admin</title>
+
+<style>
+body{
+  font-family:Arial,sans-serif;
+  margin:0;
+  background:#f6f3ed;
+  color:#303331
+}
+
+.wrap{
+  max-width:1100px;
+  margin:40px auto;
+  padding:0 18px
+}
+
+button,input{
+  font:inherit
+}
+
+button{
+  cursor:pointer
+}
+
+.card{
+  background:white;
+  border:1px solid #ddd7cd;
+  border-radius:16px;
+  padding:22px;
+  margin:15px 0
+}
+
+.login{
+  max-width:420px;
+  margin:100px auto
+}
+
+.login input{
+  width:100%;
+  padding:11px;
+  margin:7px 0;
+  border:1px solid #ddd;
+  border-radius:9px;
+  box-sizing:border-box
+}
+
+.btn{
+  border:0;
+  border-radius:9px;
+  padding:10px 15px;
+  background:#303331;
+  color:white
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px
+}
+
+.stat{
+  text-align:center
+}
+
+.stat b{
+  font-size:28px;
+  display:block
+}
+
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center
+}
+
+.toolbar-actions{
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.notifications{
+  position:relative
+}
+
+.notification-button{
+  position:relative;
+  border:1px solid #ddd7cd;
+  border-radius:9px;
+  background:white;
+  padding:9px 12px;
+  cursor:pointer
+}
+
+.notification-count{
+  position:absolute;
+  top:-8px;
+  left:-8px;
+  min-width:18px;
+  height:18px;
+  border-radius:999px;
+  background:#a33;
+  color:white;
+  font-size:11px;
+  line-height:18px;
+  text-align:center
+}
+
+.notification-menu{
+  position:absolute;
+  z-index:10;
+  top:calc(100% + 8px);
+  right:0;
+  width:300px;
+  max-width:calc(100vw - 36px);
+  border:1px solid #ddd7cd;
+  border-radius:12px;
+  background:white;
+  box-shadow:0 12px 28px rgba(48,51,49,.16);
+  padding:8px
+}
+
+.notification-item{
+  display:block;
+  width:100%;
+  border:0;
+  border-bottom:1px solid #eee;
+  background:transparent;
+  padding:10px;
+  text-align:right;
+  cursor:pointer
+}
+
+.notification-item:last-child{
+  border-bottom:0
+}
+
+.notification-item:hover{
+  background:#f6f3ed
+}
+
+.notification-item strong,
+.notification-item span{
+  display:block
+}
+
+.notification-item span{
+  margin-top:4px;
+  color:#777;
+  font-size:12px
+}
+
+.booking-highlight{
+  animation:bookingHighlight 1.8s ease-out
+}
+
+@keyframes bookingHighlight{
+  0%, 65%{background:#fff1c7}
+  100%{background:white}
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse
+}
+
+.table th,
+.table td{
+  padding:10px;
+  border-bottom:1px solid #eee;
+  text-align:right;
+  font-size:13px
+}
+
+.actions button{
+  margin:3px;
+  padding:7px;
+  border:0;
+  border-radius:7px
+}
+
+.ok{
+  background:#dcebd9
+}
+
+.bad{
+  background:#f1dddd
+}
+
+.pending{
+  background:#f3ead2
+}
+
+.whatsapp{
+  background:#d9eee0;
+  white-space:nowrap
+}
+
+/* أيام الدوام */
+.day{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+  padding:16px 0;
+  border-bottom:1px solid #eee
+}
+
+.day:last-child{
+  border-bottom:0
+}
+
+.day-info{
+  min-width:150px
+}
+
+.day-controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap
+}
+
+.time-group{
+  display:flex;
+  align-items:center;
+  gap:6px
+}
+
+.time-group label{
+  font-size:12px;
+  color:#777
+}
+
+.time-input{
+  padding:8px 10px;
+  border:1px solid #ddd;
+  border-radius:8px;
+  background:#fff
+}
+
+.day-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap
+}
+
+.closed-periods{
+  width:100%;
+  flex-basis:100%;
+  padding-top:14px;
+  border-top:1px solid #eee
+}
+
+.closed-periods h3{
+  margin:0 0 9px;
+  font-size:14px
+}
+
+.closed-period-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:7px 0
+}
+
+.closed-period-row button,
+.add-closed-period{
+  border:0;
+  border-radius:7px;
+  padding:7px 10px;
+  cursor:pointer
+}
+
+.closed-period-row button{
+  background:#f1dddd
+}
+
+.add-closed-period{
+  background:#dcebd9
+}
+
+.save-day{
+  background:#303331;
+  color:white;
+  border:0;
+  border-radius:8px;
+  padding:8px 13px
+}
+
+.save-day:hover{
+  opacity:.85
+}
+
+.small{
+  color:#777;
+  font-size:12px
+}
+
+.status-open{
+  color:#2f6b3c;
+  font-size:12px
+}
+
+.status-closed{
+  color:#a33;
+  font-size:12px
+}
+
+@media(max-width:700px){
+
+  .grid{
+    grid-template-columns:repeat(2,1fr)
+  }
+
+  .table{
+    display:block;
+    overflow:auto;
+    white-space:nowrap
+  }
+
+  .day{
+    align-items:flex-start;
+    flex-direction:column
+  }
+
+  .day-controls{
+    width:100%;
+    flex-direction:column;
+    align-items:flex-start
+  }
+
+  .day-actions{
+    width:100%
+  }
+
+  .time-input{
+    width:120px
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="root"></div>
+
+<script>
+
+const API="http://localhost:8000/api";
+
+let state={
+  logged:false,
+  stats:{},
+  bookings:[],
+  settings:[],
+  notifications:[],
+  unreadNotifications:0,
+  notificationsOpen:false,
+  highlightedBookingId:null
+};
+
+let knownBookingIds=new Set();
+let bookingsInitialized=false;
+let pollingTimer=null;
+let pollingInFlight=false;
+let highlightTimer=null;
+
+const days=[
+  "الأحد",
+  "الإثنين",
+  "الثلاثاء",
+  "الأربعاء",
+  "الخميس",
+  "الجمعة",
+  "السبت"
+];
+
+async function api(url,opt={}){
+
+  const r=await fetch(
+    API+url,
+    {
+      credentials:"include",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      ...opt
+    }
+  );
+
+  const d=await r.json();
+
+  if(!r.ok){
+    throw Error(d.message||"خطأ");
+  }
+
+  return d;
+}
+
+function stopPolling(){
+
+  if(pollingTimer){
+    clearInterval(pollingTimer);
+    pollingTimer=null;
+  }
+
+  pollingInFlight=false;
+
+}
+
+function resetNotificationState(){
+
+  knownBookingIds=new Set();
+  bookingsInitialized=false;
+  state.notifications=[];
+  state.unreadNotifications=0;
+  state.notificationsOpen=false;
+  state.highlightedBookingId=null;
+
+}
+
+function bookingSummary(booking){
+
+  return `${booking.name} — ${booking.service} — ${String(booking.booking_time).slice(0,5)}`;
+
+}
+
+function updateBookings(bookings){
+
+  const nextBookings=Array.isArray(bookings) ? bookings : [];
+
+  if(!bookingsInitialized){
+    nextBookings.forEach(booking=>knownBookingIds.add(booking.id));
+    bookingsInitialized=true;
+  }else{
+    nextBookings.forEach(booking=>{
+      if(!knownBookingIds.has(booking.id)){
+        state.notifications.unshift(booking);
+        state.unreadNotifications+=1;
+        knownBookingIds.add(booking.id);
+      }
+    });
+  }
+
+  state.bookings=nextBookings.sort((a,b)=>{
+    const dateCompare=String(b.booking_date).slice(0,10).localeCompare(
+      String(a.booking_date).slice(0,10)
+    );
+
+    if(dateCompare!==0){
+      return dateCompare;
+    }
+
+    return String(b.booking_time).slice(0,5).localeCompare(
+      String(a.booking_time).slice(0,5)
+    );
+  });
+
+}
+
+async function refreshBookings(){
+
+  updateBookings(await api("/admin/bookings"));
+
+}
+
+async function pollBookings(){
+
+  if(!state.logged || pollingInFlight){
+    return;
+  }
+
+  pollingInFlight=true;
+
+  try{
+    await refreshBookings();
+    render();
+  }catch(e){
+    // A failed polling cycle should not stop future cycles.
+  }finally{
+    pollingInFlight=false;
+  }
+
+}
+
+function startPolling(){
+
+  stopPolling();
+  pollingTimer=setInterval(pollBookings,3000);
+
+}
+
+function toggleNotifications(){
+
+  state.notificationsOpen=!state.notificationsOpen;
+
+  if(state.notificationsOpen){
+    state.unreadNotifications=0;
+  }
+
+  render();
+
+}
+
+function focusBooking(id){
+
+  state.notificationsOpen=false;
+  state.notifications=[];
+  state.highlightedBookingId=id;
+  render();
+
+  document.getElementById("bookings-section")?.scrollIntoView({behavior:"smooth",block:"start"});
+
+  clearTimeout(highlightTimer);
+  highlightTimer=setTimeout(()=>{
+    state.highlightedBookingId=null;
+    render();
+  },1800);
+
+}
+
+
+function render(){
+
+  if(!state.logged){
+
+    document.getElementById("root").innerHTML=`
+
+      <div class="wrap">
+
+        <div class="card login">
+
+          <h2>لوحة تحكم Baraa Aesthetics</h2>
+
+          <p class="small">
+            تسجيل دخول الإدارة
+          </p>
+
+          <input
+            id="u"
+            placeholder="اسم المستخدم"
+          >
+
+          <input
+            id="p"
+            type="password"
+            placeholder="كلمة المرور"
+          >
+
+          <button
+            class="btn"
+            onclick="login()"
+          >
+            دخول
+          </button>
+
+          <p id="msg"></p>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  document.getElementById("root").innerHTML=`
+
+    <div class="wrap">
+
+      <div class="toolbar">
+
+        <div>
+
+          <h1>Baraa Aesthetics</h1>
+
+          <div class="small">
+            لوحة التحكم
+          </div>
+
+        </div>
+
+        <div class="toolbar-actions">
+
+          <div class="notifications">
+
+            <button
+              class="notification-button"
+              onclick="toggleNotifications()"
+              aria-label="الإشعارات"
+            >
+              🔔
+              ${state.unreadNotifications
+                ? `<span class="notification-count">${state.unreadNotifications}</span>`
+                : ""}
+            </button>
+
+            ${state.notificationsOpen
+              ? `<div class="notification-menu">
+                  ${state.notifications.length
+                    ? state.notifications.map(b=>`
+                        <button
+                          class="notification-item"
+                          onclick="focusBooking(${b.id})"
+                        >
+                          <strong>🔔 حجز جديد #${b.id}</strong>
+                          <span>${bookingSummary(b)}</span>
+                        </button>
+                      `).join("")
+                    : `<div class="small">لا توجد إشعارات جديدة</div>`}
+                </div>`
+              : ""}
+
+          </div>
+
+          <button
+            class="btn"
+            onclick="logout()"
+          >
+            تسجيل الخروج
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="grid">
+
+        <div class="card stat">
+          <b>${state.stats.all||0}</b>
+          كل الطلبات
+        </div>
+
+        <div class="card stat">
+          <b>${state.stats.pending||0}</b>
+          قيد المراجعة
+        </div>
+
+        <div class="card stat">
+          <b>${state.stats.approved||0}</b>
+          مؤكدة
+        </div>
+
+        <div class="card stat">
+          <b>${state.stats.rejected||0}</b>
+          مرفوضة
+        </div>
+
+      </div>
+
+
+      <!-- أيام الدوام -->
+
+      <div class="card">
+
+        <h2>أيام الدوام</h2>
+
+        <p class="small">
+          يمكنك تعديل وقت بداية ونهاية الدوام أو إغلاق اليوم بالكامل.
+        </p>
+
+        ${
+          state.settings.map(s=>`
+
+            <div class="day">
+
+              <div class="day-info">
+
+                <b>
+                  ${days[s.day_of_week]}
+                </b>
+
+                <br>
+
+                <span class="${
+                  Number(s.day_of_week) === 5 || !s.is_open
+                  ? "status-closed"
+                  : "status-open"
+                }">
+
+                  ${
+                    Number(s.day_of_week) === 5
+                    ? "● عطلة أسبوعية"
+                    : s.is_open
+                    ? "● اليوم مفتوح"
+                    : "● اليوم مغلق"
+                  }
+
+                </span>
+
+              </div>
+
+
+              <div class="day-controls">
+
+                <div class="time-group">
+
+                  <label>
+                    من
+                  </label>
+
+                  <input
+                    class="time-input"
+                    type="time"
+                    id="start-${s.day_of_week}"
+                    value="${s.start_time.slice(0,5)}"
+                    ${Number(s.day_of_week) === 5 ? "disabled" : ""}
+                  >
+
+                </div>
+
+
+                <div class="time-group">
+
+                  <label>
+                    إلى
+                  </label>
+
+                  <input
+                    class="time-input"
+                    type="time"
+                    id="end-${s.day_of_week}"
+                    value="${s.end_time.slice(0,5)}"
+                    ${Number(s.day_of_week) === 5 ? "disabled" : ""}
+                  >
+
+                </div>
+
+
+                <div class="day-actions">
+
+                  <label>
+
+                    <input
+                      type="checkbox"
+                      id="open-${s.day_of_week}"
+                      ${s.is_open && Number(s.day_of_week) !== 5 ? "checked" : ""}
+                      ${Number(s.day_of_week) === 5 ? "disabled" : ""}
+                    >
+
+                    ${Number(s.day_of_week) === 5 ? "عطلة" : "مفتوح"}
+
+                  </label>
+
+
+                  <button
+                    class="save-day"
+                    onclick="saveDay(${s.day_of_week})"
+                    ${Number(s.day_of_week) === 5 ? "disabled" : ""}
+                  >
+                    ${Number(s.day_of_week) === 5 ? "عطلة ثابتة" : "💾 حفظ"}
+                  </button>
+
+                </div>
+
+              </div>
+
+              <div class="closed-periods">
+
+                <h3>الفترات المغلقة</h3>
+
+                ${
+                  Number(s.day_of_week) === 5
+                  ? `<span class="small">عطلة أسبوعية ثابتة، لا يمكن إضافة فترات لها.</span>`
+                  : `
+                    ${(s.closed_periods || []).map((period,index)=>`
+                      <div class="closed-period-row" data-day="${s.day_of_week}">
+                        <label>
+                          من
+                          <input
+                            class="time-input"
+                            type="time"
+                            data-period-start="${s.day_of_week}-${index}"
+                            value="${period.start_time.slice(0,5)}"
+                          >
+                        </label>
+
+                        <label>
+                          إلى
+                          <input
+                            class="time-input"
+                            type="time"
+                            data-period-end="${s.day_of_week}-${index}"
+                            value="${period.end_time.slice(0,5)}"
+                          >
+                        </label>
+
+                        <button type="button" onclick="removeClosedPeriod(${s.day_of_week},${index})">
+                          حذف الفترة
+                        </button>
+                      </div>
+                    `).join("")}
+
+                    <button
+                      type="button"
+                      class="add-closed-period"
+                      onclick="addClosedPeriod(${s.day_of_week})"
+                    >
+                      + إضافة فترة مغلقة
+                    </button>
+                  `
+                }
+
+              </div>
+
+            </div>
+
+          `).join("")
+        }
+
+      </div>
+
+
+      <!-- طلبات الحجز -->
+
+      <div class="card" id="bookings-section">
+
+        <h2>
+          طلبات الحجز
+        </h2>
+
+        <table class="table">
+
+          <tr>
+
+            <th>التاريخ</th>
+            <th>الوقت</th>
+            <th>الاسم</th>
+            <th>الهاتف</th>
+            <th>الخدمة</th>
+            <th>الحالة</th>
+            <th>إجراء</th>
+
+          </tr>
+
+          ${
+            state.bookings.map(b=>`
+
+              <tr class="${state.highlightedBookingId===b.id ? "booking-highlight" : ""}" id="booking-${b.id}">
+
+                <td>
+                  ${b.booking_date.slice(0,10)}
+                </td>
+
+                <td>
+                  ${b.booking_time.slice(0,5)}
+                </td>
+
+                <td>
+                  ${b.name}
+                </td>
+
+                <td>
+                  ${b.phone}
+                </td>
+
+                <td>
+                  ${b.service}
+                </td>
+
+                <td>
+                  ${
+                    b.status === 'approved'
+                    ? 'تم تأكيد الحجز'
+                    : b.status === 'rejected'
+                    ? 'تم رفض الحجز'
+                    : b.status === 'cancelled'
+                    ? '⚫ أُلغي من الزبونة'
+                    : 'قيد المراجعة'
+                  }
+                  ${b.status === 'cancelled'
+                    ? `<div class="small">${b.cancellation_note || 'لا توجد ملاحظة'}</div>`
+                    : ''}
+                </td>
+
+                <td class="actions">
+
+                  ${
+                    b.status==='pending'
+
+                    ?
+
+                    `
+                    <button
+                      class="ok"
+                      onclick="status(${b.id},'approved')"
+                    >
+                      تأكيد الحجز
+                    </button>
+
+                    <button
+                      class="bad"
+                      onclick="status(${b.id},'rejected')"
+                    >
+                      رفض الحجز
+                    </button>
+                    `
+
+                    :
+
+                    ""
+                  }
+
+                  <button
+                    class="whatsapp"
+                    onclick="notifyWhatsApp(${b.id})"
+                  >
+                    💬 إبلاغ الزبون عبر واتساب
+                  </button>
+
+                </td>
+
+              </tr>
+
+            `).join("")
+          }
+
+        </table>
+
+      </div>
+
+    </div>
+
+  `;
+}
+
+
+function notifyWhatsApp(id){
+
+  const booking=state.bookings.find(b=>b.id===id);
+
+  if(!booking){
+    alert("تعذر العثور على بيانات الحجز.");
+    return;
+  }
+
+  const phone=String(booking.phone || "").replace(/[^\d]/g, "");
+
+  if(!phone){
+    alert("لا يوجد رقم هاتف صالح لهذا الحجز.");
+    return;
+  }
+
+  const date=String(booking.booking_date).slice(0,10);
+  const time=String(booking.booking_time).slice(0,5);
+  let message;
+
+  if(booking.status === "approved"){
+    message=`\u{1F338} مرحباً ${booking.name}،
+تم تأكيد حجزك في عيادة Baraa Aesthetics.
+
+\u{1F4CB} رقم الحجز: ${booking.id}
+\u{1F486}\u{200D}\u{2640}\u{FE0F} الخدمة: ${booking.service}
+\u{1F4C5} التاريخ: ${date}
+\u{1F550} الوقت: ${time}
+
+نتمنى لك موعداً سعيداً \u{1F337}`;
+  }else if(booking.status === "rejected"){
+    message=`\u{1F338} مرحباً ${booking.name}،
+نعتذر، تم رفض الحجز في عيادة Baraa Aesthetics.
+
+\u{1F4CB} رقم الحجز: ${booking.id}
+\u{1F486}\u{200D}\u{2640}\u{FE0F} الخدمة: ${booking.service}
+\u{1F4C5} التاريخ: ${date}
+\u{1F550} الوقت: ${time}
+
+يمكنك التواصل معنا لمعرفة إمكانية حجز موعد آخر.`;
+  }else{
+    message=`\u{1F338} مرحباً ${booking.name}،
+حجزك في عيادة Baraa Aesthetics ما زال قيد المراجعة.
+
+\u{1F4CB} رقم الحجز: ${booking.id}
+\u{1F486}\u{200D}\u{2640}\u{FE0F} الخدمة: ${booking.service}
+\u{1F4C5} التاريخ: ${date}
+\u{1F550} الوقت: ${time}
+
+سنتواصل معك عند تحديث حالة الحجز.`;
+  }
+
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+
+}
+
+
+async function login(){
+
+  const u = document.getElementById("u");
+  const p = document.getElementById("p");
+  const msg = document.getElementById("msg");
+
+  if(!u || !p){
+    return;
+  }
+
+  try{
+
+    await api(
+      "/admin/login",
+      {
+        method:"POST",
+
+        body:JSON.stringify({
+          username:u.value,
+          password:p.value
+        })
+      }
+    );
+
+    state.logged=true;
+    resetNotificationState();
+    await load();
+    startPolling();
+
+  }catch(e){
+
+    if(msg){
+      msg.textContent=e.message;
+    }
+
+  }
+
+}
+
+
+async function logout(){
+
+  stopPolling();
+  resetNotificationState();
+
+  await api(
+    "/admin/logout",
+    {
+      method:"POST"
+    }
+  );
+
+  state.logged=false;
+
+  render();
+
+}
+
+
+async function load(){
+
+  state.stats=await api("/admin/stats");
+  await refreshBookings();
+  state.settings=await api("/settings");
+
+  render();
+
+}
+
+
+async function status(id,s){
+
+  try{
+
+    await api(
+      "/admin/bookings/"+id,
+      {
+        method:"PATCH",
+
+        body:JSON.stringify({
+          status:s
+        })
+      }
+    );
+
+    await load();
+
+  }catch(e){
+
+    alert(e.message);
+
+  }
+
+}
+
+
+/* فتح وإغلاق اليوم */
+
+async function toggleDay(day,open){
+
+  try{
+
+    await api(
+      "/admin/settings/"+day,
+      {
+        method:"PATCH",
+
+        body:JSON.stringify({
+          is_open:open
+        })
+      }
+    );
+
+    await load();
+
+  }catch(e){
+
+    alert(e.message);
+
+  }
+
+}
+
+
+/* حفظ ساعات الدوام */
+
+function readClosedPeriods(day){
+
+  return Array.from(
+    document.querySelectorAll('.closed-period-row[data-day="'+day+'"]')
+  ).map(row=>({
+    start_time:row.querySelector('[data-period-start]')?.value || "",
+    end_time:row.querySelector('[data-period-end]')?.value || ""
+  }));
+
+}
+
+
+function addClosedPeriod(day){
+
+  if(Number(day) === 5){
+    return;
+  }
+
+  const setting=state.settings.find(s=>Number(s.day_of_week)===Number(day));
+
+  if(!setting){
+    return;
+  }
+
+  setting.closed_periods=readClosedPeriods(day);
+  setting.closed_periods.push({start_time:"",end_time:""});
+  render();
+
+}
+
+
+function removeClosedPeriod(day,index){
+
+  if(Number(day) === 5){
+    return;
+  }
+
+  const setting=state.settings.find(s=>Number(s.day_of_week)===Number(day));
+
+  if(!setting){
+    return;
+  }
+
+  setting.closed_periods=readClosedPeriods(day);
+  setting.closed_periods.splice(index,1);
+  render();
+
+}
+
+async function saveDay(day){
+
+  if(Number(day) === 5){
+    alert("الجمعة عطلة أسبوعية ثابتة للعيادة");
+    return;
+  }
+
+  const startInput=
+    document.getElementById("start-"+day);
+
+  const endInput=
+    document.getElementById("end-"+day);
+
+  const openInput=
+    document.getElementById("open-"+day);
+
+
+  const start_time=startInput.value;
+
+  const end_time=endInput.value;
+
+  const is_open=openInput.checked;
+  const closed_periods=readClosedPeriods(day);
+
+
+  if(!start_time || !end_time){
+
+    alert("يرجى تحديد وقت البداية والنهاية");
+
+    return;
+
+  }
+
+
+  if(start_time>=end_time){
+
+    alert(
+      "وقت النهاية يجب أن يكون بعد وقت البداية"
+    );
+
+    return;
+
+  }
+
+  const startMinutes=value=>{
+    const [hours,minutes]=value.split(":").map(Number);
+    return hours*60+minutes;
+  };
+
+  const dayStart=startMinutes(start_time);
+  const dayEnd=startMinutes(end_time);
+  const sortedPeriods=closed_periods
+    .map(period=>({
+      ...period,
+      start:startMinutes(period.start_time),
+      end:startMinutes(period.end_time)
+    }))
+    .sort((a,b)=>a.start-b.start);
+
+  for(let index=0; index<sortedPeriods.length; index++){
+    const period=sortedPeriods[index];
+
+    if(!period.start_time || !period.end_time || period.start>=period.end || period.start<dayStart || period.end>dayEnd){
+      alert("يرجى التأكد من أن كل فترة مغلقة داخل ساعات الدوام وبداية الفترة قبل نهايتها");
+      return;
+    }
+
+    if(index>0 && period.start<sortedPeriods[index-1].end){
+      alert("لا يمكن أن تتداخل الفترات المغلقة");
+      return;
+    }
+  }
+
+
+  try{
+
+    await api(
+      "/admin/settings/"+day,
+      {
+        method:"PATCH",
+
+        body:JSON.stringify({
+
+          is_open:is_open,
+
+          start_time:start_time+":00",
+
+          end_time:end_time+":00",
+
+          closed_periods:closed_periods.map(period=>({
+            start_time:period.start_time+":00",
+            end_time:period.end_time+":00"
+          }))
+
+        })
+      }
+    );
+
+
+    alert(
+      "تم حفظ أوقات الدوام بنجاح"
+    );
+
+
+    await load();
+
+  }catch(e){
+
+    alert(e.message);
+
+  }
+
+}
+
+
+/* التحقق من جلسة الإدارة */
+
+api("/admin/me")
+  .then(()=>{
+    state.logged=true;
+    resetNotificationState();
+    return load();
+  })
+  .then(()=>{
+    startPolling();
+  })
+  .catch(()=>{
+    render();
+  });
+
+</script>
+
+</body>
+</html>
+
