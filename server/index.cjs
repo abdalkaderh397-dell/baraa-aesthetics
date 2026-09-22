@@ -18,14 +18,26 @@ const PORT = process.env.PORT || 8000;
 ========================================================= */
 
 app.set("trust proxy", 1);
+const cors = require("cors");
+const cors = require("cors");
+
+const allowedOrigins = [
+  "https://baraa-aesthetics.netlify.app",
+  "https://localhost"
+];
 
 app.use(cors({
-  origin: "https://baraa-aesthetics.netlify.app",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
-
 app.use(express.json());
 
 /* =========================================================
