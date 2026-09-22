@@ -18,8 +18,6 @@ const PORT = process.env.PORT || 8000;
 ========================================================= */
 
 app.set("trust proxy", 1);
-const cors = require("cors");
-const cors = require("cors");
 
 const allowedOrigins = [
   "https://baraa-aesthetics.netlify.app",
