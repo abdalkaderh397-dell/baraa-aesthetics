@@ -20,12 +20,16 @@ const pool = mysql.createPool({
   connectionLimit: 10
 });
 
-app.use(cors({origin:true, credentials:true}));
-app.use(express.json());
 app.use(session({
   secret: process.env.SESSION_SECRET || "baraa-dev-secret",
-  resave:false, saveUninitialized:false,
-  cookie:{httpOnly:true,sameSite:"lax",secure:false,maxAge:1000*60*60*8}
+  resave:false,
+  saveUninitialized:false,
+  cookie:{
+    httpOnly:true,
+    sameSite:"none",
+    secure:true,
+    maxAge:1000*60*60*8
+  }
 }));
 
 const slots = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
