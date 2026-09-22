@@ -128,6 +128,12 @@ function auth(req,res,next){
 }
 function validDate(d){ return /^\d{4}-\d{2}-\d{2}$/.test(d); } 
 function validTime(t){ return /^\d{2}:\d{2}$/.test(String(t || "")); }
+function normalizePhone(phone){
+  return String(phone || "")
+    .trim()
+    .replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+    .replace(/[^\d+]/g, "");
+}
 
 app.get("/api/health", async (req,res)=>{
   try { await pool.query("SELECT 1"); res.json({ok:true}); }
@@ -168,7 +174,7 @@ app.get("/api/availability", async (req,res)=>{
 });
 app.get("/api/my-bookings", async (req,res)=>{
   try{
-    const phone = String(req.query.phone || "").trim();
+    const phone = normalizePhone(req.query.phone);
 
     if(!phone){
       return res.status(400).json({
@@ -190,7 +196,7 @@ app.get("/api/my-bookings", async (req,res)=>{
         cancellation_note,
         created_at
        FROM bookings
-       WHERE phone=?
+      WHERE REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', '')=?
        ORDER BY booking_date DESC, booking_time DESC`,
       [phone]
     );
@@ -207,7 +213,7 @@ app.get("/api/my-bookings", async (req,res)=>{
 app.patch("/api/my-bookings/:id/cancel", async (req,res)=>{
   try{
     const id=Number(req.params.id);
-    const phone=String(req.body?.phone || "").trim();
+    const phone=normalizePhone(req.body?.phone);
     const cancellationNote=String(req.body?.cancellationNote || "").trim();
 
     if(!Number.isInteger(id) || id<1 || !phone)
@@ -216,12 +222,12 @@ app.patch("/api/my-bookings/:id/cancel", async (req,res)=>{
     const [result]=await pool.query(
       `UPDATE bookings
        SET status='cancelled', cancelled_at=CURRENT_TIMESTAMP, cancellation_note=?
-       WHERE id=? AND phone=? AND status IN ('pending','approved')`,
+      WHERE id=? AND REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', '')=? AND status IN ('pending','approved')`,
       [cancellationNote || null,id,phone]
     );
 
     if(!result.affectedRows){
-      const [rows]=await pool.query("SELECT id,status FROM bookings WHERE id=? AND phone=? LIMIT 1",[id,phone]);
+      const [rows]=await pool.query("SELECT id,status FROM bookings WHERE id=? AND REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', '')=? LIMIT 1",[id,phone]);
       if(!rows.length) return res.status(404).json({message:"لم يتم العثور على الحجز."});
       if(rows[0].status === "cancelled") return res.status(409).json({message:"تم إلغاء هذا الحجز مسبقاً."});
       return res.status(409).json({message:"لا يمكن إلغاء هذا الحجز."});
@@ -236,7 +242,8 @@ app.patch("/api/my-bookings/:id/cancel", async (req,res)=>{
 
 app.post("/api/bookings", async (req,res)=>{
   const {service,date,time,name,phone,notes=""} = req.body || {};
-  if(!service || !validDate(date) || !validTime(time) || !name || !phone)
+  const normalizedPhone = normalizePhone(phone);
+  if(!service || !validDate(date) || !validTime(time) || !name || !normalizedPhone)
     return res.status(400).json({message:"Please complete all required fields."});
   const [settings] = await pool.query("SELECT * FROM settings WHERE day_of_week=DAYOFWEEK(?) - 1",[date]);
   if(!settings.length || settings[0].day_of_week === 5)
@@ -255,7 +262,7 @@ app.post("/api/bookings", async (req,res)=>{
   if(existing.length) return res.status(409).json({message:"This time slot is already requested or booked."});
   const [result] = await pool.query(
     "INSERT INTO bookings(service,booking_date,booking_time,name,phone,notes) VALUES (?,?,?,?,?,?)",
-    [service,date,time,name,phone,notes]
+    [service,date,time,name,normalizedPhone,notes]
   );
   res.status(201).json({ok:true,id:result.insertId});
 });

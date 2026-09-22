@@ -179,6 +179,31 @@ button{
   font-size:13px
 }
 
+.filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin:16px 0 20px
+}
+
+.filters label{
+  display:grid;
+  gap:6px;
+  min-width:180px;
+  color:#555;
+  font-size:12px
+}
+
+.filters select,
+.filters input{
+  min-height:36px;
+  padding:7px 9px;
+  border:1px solid #ddd;
+  border-radius:7px;
+  background:#fff;
+  color:#222
+}
+
 .actions button{
   margin:3px;
   padding:7px;
@@ -379,6 +404,7 @@ let state={
   logged:false,
   stats:{},
   bookings:[],
+  filters:{service:"",date:"",status:""},
   settings:[],
   notifications:[],
   unreadNotifications:0,
@@ -584,7 +610,7 @@ function updateBookings(bookings){
 
   }
 
-  state.bookings=nextBookings.sort((a,b)=>{
+  state.bookings=(Array.isArray(bookings)?bookings:[]).sort((a,b)=>{
 
     const dateCompare=
       String(a.booking_date).slice(0,10)
@@ -602,6 +628,29 @@ function updateBookings(bookings){
       );
 
   });
+
+}
+
+function matchesBookingFilters(booking){
+
+  const filters=state.filters;
+
+  return (!filters.service || booking.service===filters.service)
+    && (!filters.date || String(booking.booking_date).slice(0,10)===filters.date)
+    && (!filters.status || booking.status===filters.status);
+
+}
+
+function filteredBookings(){
+
+  return state.bookings.filter(matchesBookingFilters);
+
+}
+
+function setBookingFilter(name,value){
+
+  state.filters[name]=value;
+  render();
 
 }
 
@@ -1108,6 +1157,38 @@ function render(){
           طلبات الحجز
         </h2>
 
+        <div class="filters">
+
+          <label>
+            الخدمة
+            <select onchange="setBookingFilter('service',this.value)">
+              <option value="">كل الخدمات</option>
+              ${[...new Set(state.bookings.map(b=>b.service).filter(Boolean))]
+                .sort((a,b)=>a.localeCompare(b,'ar'))
+                .map(service=>`
+                  <option value="${service}" ${state.filters.service===service ? "selected" : ""}>${service}</option>
+                `).join("")}
+            </select>
+          </label>
+
+          <label>
+            التاريخ
+            <input type="date" value="${state.filters.date}" onchange="setBookingFilter('date',this.value)">
+          </label>
+
+          <label>
+            الحالة
+            <select onchange="setBookingFilter('status',this.value)">
+              <option value="" ${!state.filters.status ? "selected" : ""}>كل الحالات</option>
+              <option value="pending" ${state.filters.status==="pending" ? "selected" : ""}>قيد المراجعة</option>
+              <option value="approved" ${state.filters.status==="approved" ? "selected" : ""}>مؤكدة / مثبتة</option>
+              <option value="rejected" ${state.filters.status==="rejected" ? "selected" : ""}>مرفوضة</option>
+              <option value="cancelled" ${state.filters.status==="cancelled" ? "selected" : ""}>ملغاة</option>
+            </select>
+          </label>
+
+        </div>
+
         <table class="table">
 
           <tr>
@@ -1124,7 +1205,7 @@ function render(){
           </tr>
 
           ${
-            state.bookings.map(b=>`
+            filteredBookings().map(b=>`
 
               <tr
                 class="${
@@ -1222,6 +1303,44 @@ function render(){
 
             `).join("")
           }
+
+        </table>
+
+      </div>
+
+      <div class="card" id="confirmed-bookings-section">
+
+        <h2>
+          المواعيد المؤكدة / المثبتة
+        </h2>
+
+        <table class="table">
+
+          <tr>
+            <th>رقم الحجز</th>
+            <th>اسم المريض</th>
+            <th>الهاتف</th>
+            <th>الخدمة</th>
+            <th>التاريخ</th>
+            <th>الوقت</th>
+            <th>الملاحظات</th>
+            <th>الحالة</th>
+          </tr>
+
+          ${filteredBookings()
+            .filter(booking=>booking.status==="approved")
+            .map(booking=>`
+              <tr>
+                <td>B${booking.id}</td>
+                <td>${booking.name}</td>
+                <td>${booking.phone}</td>
+                <td>${booking.service}</td>
+                <td>${String(booking.booking_date).slice(0,10)}</td>
+                <td>${String(booking.booking_time).slice(0,5)}</td>
+                <td>${booking.notes || "-"}</td>
+                <td>تم تأكيد الحجز</td>
+              </tr>
+            `).join("")}
 
         </table>
 
