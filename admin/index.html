@@ -1385,46 +1385,45 @@ function notifyWhatsApp(id){
   const time=
     String(booking.booking_time)
       .slice(0,5);
+let message;
 
-  let message;
+if(booking.status==="approved"){
 
-  if(booking.status==="approved"){
-
-    message=`🌸 مرحباً ${booking.name}،
+  message=`\u{1F338} مرحباً ${booking.name}،
 تم تأكيد حجزك في عيادة Baraa Aesthetics.
 
-📋 رقم الحجز: ${booking.id}
-💆‍♀️ الخدمة: ${booking.service}
-📅 التاريخ: ${date}
-🕐 الوقت: ${time}
+\u{1F4CB} رقم الحجز: ${booking.id}
+\u{1F487}\u200D\u2640\uFE0F الخدمة: ${booking.service}
+\u{1F4C5} التاريخ: ${date}
+\u{1F550} الوقت: ${time}
 
-نتمنى لك موعداً سعيداً 🌷`;
+نتمنى لك موعداً سعيداً \u{1F337}`;
 
-  }else if(booking.status==="rejected"){
+}else if(booking.status==="rejected"){
 
-    message=`🌸 مرحباً ${booking.name}،
+  message=`\u{1F338} مرحباً ${booking.name}،
 نعتذر، تم رفض الحجز في عيادة Baraa Aesthetics.
 
-📋 رقم الحجز: ${booking.id}
-💆‍♀️ الخدمة: ${booking.service}
-📅 التاريخ: ${date}
-🕐 الوقت: ${time}
+\u{1F4CB} رقم الحجز: ${booking.id}
+\u{1F487}\u200D\u2640\uFE0F الخدمة: ${booking.service}
+\u{1F4C5} التاريخ: ${date}
+\u{1F550} الوقت: ${time}
 
 يمكنك التواصل معنا لمعرفة إمكانية حجز موعد آخر.`;
 
-  }else{
+}else{
 
-    message=`🌸 مرحباً ${booking.name}،
+  message=`\u{1F338} مرحباً ${booking.name}،
 حجزك في عيادة Baraa Aesthetics ما زال قيد المراجعة.
 
-📋 رقم الحجز: ${booking.id}
-💆‍♀️ الخدمة: ${booking.service}
-📅 التاريخ: ${date}
-🕐 الوقت: ${time}
+\u{1F4CB} رقم الحجز: ${booking.id}
+\u{1F487}\u200D\u2640\uFE0F الخدمة: ${booking.service}
+\u{1F4C5} التاريخ: ${date}
+\u{1F550} الوقت: ${time}
 
 سنتواصل معك عند تحديث حالة الحجز.`;
 
-  }
+}
 
   window.open(
     `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
